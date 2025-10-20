@@ -3,9 +3,10 @@ import { jwtDecode } from "jwt-decode";
 import type { NavigateFunction } from "react-router-dom";
 
 interface MyTokenPayload extends JwtPayload {
-  user_id: number;
-  user_email: string;
-  is_admin: boolean;
+  id: number;
+  email: string;
+  role: string;
+  isAdmin: boolean;
 }
 
 export function getToken(): string | null {
@@ -37,15 +38,15 @@ export function handleAuthResponse(data: any, navigate: NavigateFunction) {
 
 export function getAdminStatus(): boolean {
   const payload = getDecodedToken();
-  return payload?.is_admin === true;
+  return payload?.isAdmin === true;
 }
 
 export function getUserId(): number | null {
   const payload = getDecodedToken();
-  return payload?.user_id || null;
+  return payload?.id || null;
 }
 
 export function getUserEmail(): string | null {
   const payload = getDecodedToken();
-  return payload?.user_email || null;
+  return payload?.email || null;
 }

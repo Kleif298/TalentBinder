@@ -1,0 +1,43 @@
+.filter {
+  width: 80%;
+  height: 30px;
+  display: flex;
+  flex-flow: cloumn nowrap;
+  gap: 20px;
+  align-items: center;
+}
+
+.searchbar {
+  height: 100%;
+  max-width: 400px;
+  flex: 1;
+  font-style: italic;
+  border-radius: 15px;
+  padding: 0 15px;
+}
+
+.filter button {
+  height: 100%;
+  align-items: center;
+  display: flex;
+  flex-flow: row nowrap;
+  gap: 5px;
+}
+
+.talent-toggle-icon {
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+}
+
+.talent-toggle-icon.enabled {
+  background-color: $success-color;
+}
+.talent-toggle-icon.disabled {
+  background-color: $error-color;
+}
+
+button img[alt="search icon"] {
+  height: 20px;
+  padding: 0;
+}

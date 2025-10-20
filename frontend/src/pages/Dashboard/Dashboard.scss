@@ -1,0 +1,14 @@
+.list-container {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 800px;
+  align-items: center;
+  margin: 40px auto 0 auto;
+}
+
+.list-header {
+  display: flex;
+  flex-direction: row;
+  gap: 80px
+}

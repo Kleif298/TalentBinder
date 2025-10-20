@@ -1,9 +1,11 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { handleAuthResponse } from "../utils/auth.ts";
-import "./Register.css";
+import { handleAuthResponse } from "../../utils/auth.ts";
+
+import "./Register.scss";
 
 const Register = () => {
+  const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
@@ -15,7 +17,8 @@ const Register = () => {
       const res = await fetch("http://localhost:4000/api/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+        credentials: "include",
+        body: JSON.stringify({ email, password, username }),
       });
       if (!res.ok) {
         throw new Error("Server error: " + res.statusText);
@@ -23,7 +26,7 @@ const Register = () => {
 
       const data = await res.json();
       if (data.success) {
-        setMessage("Registration successful! Autmated login...");
+        setMessage("Registration successful! Automated login...");
         handleAuthResponse(data, navigate);
       } else {
         setMessage("Login failed: " + data.message);
@@ -38,6 +41,17 @@ const Register = () => {
       <form className="register-form" onSubmit={handleRegister}>
         <h2>Register</h2>
 
+        <div className="input-group">
+          <label htmlFor="username">Username *optional</label>
+          <input
+            type="username"
+            id="username"
+            name="username"
+            onChange={(e) => setUsername(e.target.value)}
+            placeholder="Enter your username"
+            required
+          />
+        </div>
         <div className="input-group">
           <label htmlFor="email">Email</label>
           <input
@@ -70,6 +84,7 @@ const Register = () => {
           </Link>
         </div>
       </form>
+      {message && <div className="register-message">{message}</div>}
     </div>
   );
 };

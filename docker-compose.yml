@@ -1,13 +1,11 @@
-version: "3.9"
-
 services:
   db:
     image: postgres:15
     container_name: meine_postgres_db
     environment:
-      POSTGRES_USER: use
+      POSTGRES_USER: user
       POSTGRES_PASSWORD: pass
-      POSTGRES_DB: meine_db
+      POSTGRES_DB: talentBinder_db
     ports:
       - "5432:5432"
     volumes:

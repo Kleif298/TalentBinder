@@ -1,0 +1,12 @@
+.grid-list-container {
+  background-color: grey-500;
+  border-radius: 20px;
+  box-shadow: inset 0 0 10px 5px rgba(0, 0, 0, 0.25);
+  box-sizing: border-box;
+  width: 100%;
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 20px;
+  padding: 20px;
+}

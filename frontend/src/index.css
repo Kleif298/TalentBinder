@@ -5,8 +5,6 @@
 
   min-width: 100vw;
   min-height: 100vh;
-  margin: 0;
-  padding: 0;
 
   color-scheme: light dark;
   color: rgba(255, 255, 255, 0.87);
@@ -20,19 +18,27 @@
 
 a {
   font-weight: 500;
-  color: #646cff;
+  color: #bbbbbb;
   text-decoration: inherit;
 }
 a:hover {
-  color: #535bf2;
+  color: #bbbbbb;
 }
 
 body {
-  margin: 0;
   display: grid;
   place-items: center;
   min-width: 320px;
   min-height: 100vh;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  width: 100%;
+  margin: 0;
+  padding: 0;
 }
 
 h1 {
@@ -52,7 +58,7 @@ button {
   transition: border-color 0.25s;
 }
 button:hover {
-  border-color: #646cff;
+  border-color: #bbbbbb;
 }
 button:focus,
 button:focus-visible {
@@ -70,4 +76,10 @@ button:focus-visible {
   button {
     background-color: #f9f9f9;
   }
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  background-color: none;
 }

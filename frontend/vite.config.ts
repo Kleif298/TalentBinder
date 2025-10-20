@@ -1,7 +1,19 @@
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
 
-// https://vite.dev/config/
 export default defineConfig({
   plugins: [react()],
-})
+  resolve: {
+    alias: {
+      "~": "/src", // ~ → src für JS/TS und SCSS
+    },
+  },
+  css: {
+    preprocessorOptions: {
+      scss: {
+        // Globale SCSS-Datei in allen SCSS-Dateien einbinden
+        additionalData: `@import "~/styles/global.scss";`,
+      },
+    },
+  },
+});

@@ -9,7 +9,10 @@ dotenv.config();
 const { Client } = pkg;
 const app = express();
 
-app.use(cors());
+app.use(cors({
+  origin: 'http://localhost:5173',
+  credentials: true
+}));
 app.use(express.json());
 
 const client = new Client({
@@ -29,26 +32,40 @@ app.get("/api/data", async (req, res) => {
   res.json({ message: "Backend ist ume!" });
 });
 
-// Login-Route (sicher, ohne Klartext-Passwort)
 app.post("/api/login", async (req, res) => {
   const { email, password } = req.body;
   try {
     const result = await client.query(
-      "SELECT id, email, password_hash, is_admin FROM users WHERE email = $1",
+      "SELECT id, email, password_hash, role, COALESCE(username, email) AS username FROM users WHERE email = $1;",
       [email]
     );
     const user = result.rows[0];
+    const isAdmin = ["berufsbildner"].includes(user.role);
     if (user && bcrypt.compareSync(password, user.password_hash)) {
-      // JWT generieren
       const token = jwt.sign(
-        { id: user.id, email: user.email, is_admin: user.is_admin },
-        process.env.JWT_SECRET || "mysecret",
+        { id: user.id, email: user.email, role: user.role, isAdmin: isAdmin },
+        process.env.JWT_SECRET,
         { expiresIn: "1h" }
       );
+
+      res.cookie("token", token, {
+        /*development settings*/
+        httpOnly: false,
+        secure: false,
+        sameSite: "Lax",
+        maxAge: 3600000,
+        /* production settings
+        httpOnly: true,
+        secure: true,
+        sameSite: "Strict",
+        maxAge: 3600000,
+        */
+      });
+
       res.json({
         success: true,
-        user: { id: user.id, email: user.email, is_admin: user.is_admin },
-        token,
+        token: token,
+        user: { id: user.id, email: user.email, role: user.role },
       });
     } else {
       res.json({
@@ -65,17 +82,17 @@ app.post("/api/login", async (req, res) => {
 
 app.post("/api/register", async (req, res) => {
   console.log("Register request body:", req.body);
-  const { email, password } = req.body;
+  const { email, password, username } = req.body;
   const hashedPassword = await bcrypt.hash(password, 10);
   try {
     const result = await client.query(
-      "INSERT INTO users (email, password_hash, is_admin) VALUES ($1, $2, $3) RETURNING id, email, is_admin",
-      [email, hashedPassword, false]
+      "INSERT INTO users (email, password_hash, username) VALUES ($1, $2, $3) RETURNING id, email, COALESCE(username, email) AS username;",
+      [email, hashedPassword, username]
     );
     const user = result.rows[0];
     res.json({
       success: true,
-      user: { id: user.id, email: user.email, is_admin: user.is_admin },
+      user: { id: user.id, email: user.email, role: user.role },
     });
   } catch (err) {
     console.error("Registration error:", err);
@@ -83,13 +100,61 @@ app.post("/api/register", async (req, res) => {
   }
 });
 
-// Dashboard-Route
+
+
+app.get("/api/dashboard/callCandidates", async (req, res) => {
+  try {
+    const result = await client.query(
+      "SELECT * FROM candidates;"
+    );
+    res.status(200).json({
+      success: true,
+      candidates: result.rows, 
+    });
+  } catch (error) {
+    console.error("Call Candidate Error: ", error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+
+app.post("/api/dashboard/registerCandidates", async (req, res) => {
+  const { firstName, lastName, email, status, interests, jobBrancheInterests } = req.body || {};
+  console.log("Register Candidate request body:", req.body);
+
+  // validate required fields
+  if (!firstName || !email) {
+    return res.status(400).json({ success: false, message: "firstName and email are required" });
+  }
+
+  // convert interests array to comma-separated text for job_interest column
+  const jobInterest = Array.isArray(interests) ? interests.join(", ") : null;
+
+  try {
+    const result = await client.query(
+      `INSERT INTO candidates (first_name, last_name, email, status, job_interest, job_branche_interests)
+       VALUES ($1, $2, $3, $4, $5, $6)
+       RETURNING id, email;`,
+      [firstName, lastName, email, status || "default", jobInterest, jobBrancheInterests || null]
+    );
+    console.log("Candidate registered with ID:", result.rows[0].id);
+    res.status(200).json({ success: true, candidate: result.rows[0] });
+  } catch (error) {
+    console.error("Register Candidate Error: ", error);
+    if (error.code === "23505") {
+      return res.status(409).json({ success: false, message: "Email already exists" });
+    }
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+
 app.get("/api/dashboard", (req, res) => {
   res.json({ message: "Willkommen im Dashboard!" });
 });
 
 app.get("/api/dashboard/admin", (req, res) => {
-  res.json({ message: "Willkommen im Dashboard-Admin!" });
+  res.json({ message: "Willkommen im Admin-Dashboard!" });
 });
 
 const PORT = process.env.PORT || 4000;

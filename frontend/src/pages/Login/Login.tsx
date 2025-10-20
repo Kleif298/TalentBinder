@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { handleAuthResponse } from "../utils/auth";
-import "./Login.css";
+import { handleAuthResponse } from "../../utils/auth";
+import "./Login.scss";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -15,6 +15,7 @@ const Login = () => {
       const res = await fetch("http://localhost:4000/api/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({ email, password }),
       });
 
@@ -25,14 +26,9 @@ const Login = () => {
       const data = await res.json();
       if (data.success) {
         setMessage(
-          "Login successful! " +
-            data.user.email +
-            (data.user.is_admin ? " (Admin)" : "")
+          "Login successful! " + data.user.email
         );
-        // Token speichern (z.B. im LocalStorage)
-        if (data.token) {
-          localStorage.setItem("token", data.token);
-        }
+
         handleAuthResponse(data, navigate);
       } else {
         setMessage("Login failed: " + data.message);

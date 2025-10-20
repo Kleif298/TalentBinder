@@ -1,0 +1,85 @@
+header {
+  top: 0;
+  left: 0;
+  position: sticky;
+  width: 100vw;
+  background-color: $primary-color;
+  color: $grey-100;
+  box-shadow: 0 10px 10px rgba(0, 0, 0, 0.25);
+}
+
+.header-main {
+  height: 60px;
+  margin: 0;
+  align-items: center;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  padding: 0 30px;
+}
+
+.header-line {
+  height: 2px;
+  background-color: #E59C36;
+}
+
+.header-title {
+  margin: 0;
+  padding: 0;
+  line-height: 60px;
+  font-size: 1.5rem;
+  display: flex;
+  justify-content: flex-start;
+  color: #E59C36;
+}
+
+.user-data {
+  display: flex;
+  flex-flow: colomn nowrap;
+  align-items: center;
+  gap: 15px;
+}
+
+.admin-state {
+  font-weight: 100;
+  margin: 0;
+}
+
+.email-holder {
+  padding: 5px 25px;
+  background-color: $grey-100;
+  border: solid 1px $grey-500;
+  border-radius: 50px;
+  color: $grey-900;
+}
+
+nav {
+  height: 30px;
+  background-color: $primary-color;
+
+  display: flex;
+  flex-direction: row;
+
+  > :nth-child(1) {
+    background-color: $grey-300;
+    color: $primary-color;
+    box-shadow: inset -4px 4px 4px 0 rgba(0, 0, 0, 0.25);
+  }
+}
+
+nav a {
+  flex: 1;
+  display: grid;
+  place-items: center;
+  color: $grey-100;
+}
+
+.logout-button {
+  background-color: $error-color;
+  color: $grey-100;
+  cursor: pointer;
+  height: 30px;
+  padding: 0 5px;
+  box-shadow: inset -5px -5px 5px 0 rgba(0, 0, 0, 0.25),
+    inset 5px 5px 5px 0 rgba(255, 255, 255, 0.25),
+    2px 2px 5px 0 rgba(0, 0, 0, 0.25);
+}
