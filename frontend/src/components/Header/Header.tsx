@@ -25,7 +25,7 @@ const Header = () => {
         </div>
       </div>
       <nav>
-        <a href="/dashboard" className={isActive("/dashboard") ? "active" : ""}>
+        <a href="/dashboard/admin" className={isActive("/dashboard/admin") ? "active" : ""}>
           Talents
         </a>
         <a href="/EventDashboard" className={isActive("/EventDashboard") ? "active" : ""}>

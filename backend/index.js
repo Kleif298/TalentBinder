@@ -149,6 +149,60 @@ app.post("/api/dashboard/registerCandidates", async (req, res) => {
 });
 
 
+app.get("/api/dashboard/callEvents", async (req, res) => {
+  try {
+    const result = await client.query(
+      "SELECT * FROM events;"
+    );
+    
+    // convert snake_case to camelCase
+    const events = result.rows.map(row => ({
+      id: row.id,
+      title: row.title,
+      description: row.description,
+      startingAt: row.starting_at,
+      duration: row.duration,
+      invitationsSendingAt: row.invitations_sending_at,
+      registrationsClosingAt: row.registrations_closing_at,
+      createdAt: row.created_at,
+    }));
+
+    res.status(200).json({
+      success: true,
+      events: events,
+    });
+  } catch (error) {
+    console.error("Call Event Error: ", error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+
+app.post("/api/dashboard/registerEvents", async (req, res) => {
+  const { title, description, startingAt, duration, invitationsSendingAt, registrationsClosingAt } = req.body || {}
+  console.log("Register Event request body:", req.body)
+
+  // validate required fields
+  if (!title || !description || !startingAt) {
+    return res.status(400).json({ success: false, message: "title, description and startingAt are required" })
+  }
+
+  try {
+    const result = await client.query(
+      `INSERT INTO events (title, description, starting_at, duration, invitations_sending_at, registrations_closing_at)
+       VALUES ($1, $2, $3, $4, $5, $6)
+       RETURNING id, title;`,
+      [title, description, startingAt, duration || null, invitationsSendingAt || null, registrationsClosingAt || null],
+    )
+    console.log("Event registered with ID:", result.rows[0].id)
+    res.status(200).json({ success: true, event: result.rows[0] })
+  } catch (error) {
+    console.error("Register Event Error: ", error)
+    res.status(500).json({ success: false, message: error.message })
+  }
+})
+
+
 app.get("/api/dashboard", (req, res) => {
   res.json({ message: "Willkommen im Dashboard!" });
 });
