@@ -13,6 +13,7 @@ interface EventFormData {
 const EventModal = () => {
   const [isOpen, setIsOpen] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [editingEvent, setEditingEvent] = useState<EventFormData | null>(null)
   const [error, setError] = useState("")
   const [success, setSuccess] = useState("")
   const [formData, setFormData] = useState<EventFormData>({
@@ -22,7 +23,7 @@ const EventModal = () => {
     duration: "",
     invitationsSendingAt: "",
     registrationsClosingAt: "",
-  })
+  });
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target
@@ -145,7 +146,7 @@ const EventModal = () => {
                     <label htmlFor="duration">Dauer</label>
                     <input
                       id="duration"
-                      type="text"
+                      type="time"
                       name="duration"
                       placeholder="z.B. 2 Stunden"
                       value={formData.duration}

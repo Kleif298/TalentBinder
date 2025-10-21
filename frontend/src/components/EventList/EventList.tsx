@@ -7,9 +7,10 @@ interface Event {
     description: string;
     startingAt: string;
     duration: string;
-    invitations_sending_at: string;
-    registrations_closing_at: string;
-    created_at: string;
+    invitationsSendingAt: string;
+    registrationsClosingAt: string;
+    createdAt: string;
+    onDelete: (eventId: number) => void;
 }
     
 const EventList = () => {
@@ -17,6 +18,49 @@ const EventList = () => {
     const [events, setEvents] = useState<Event[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+
+    async function handleDeleteEvent(eventId: number) {
+        try {
+            const res = await fetch(`http://localhost:4000/api/dashboard/deleteEvent/${eventId}`, {
+                method: "DELETE",
+                credentials: "include"
+            });
+
+            if (!res.ok) {
+                throw new Error("Server error: " + res.statusText);
+            }
+
+            setEvents((prevEvents) => prevEvents.filter((event) => event.id !== eventId));
+        } catch (err: any) {
+            setError("Fehler beim Löschen des Events: " + err.message);
+        }
+    }
+
+    async function handleEditEvent(formData: Event) {
+        try {
+            const res = await fetch(`http://localhost:4000/api/dashboard/editEvent/${formData.id}`, {
+                method: "PUT",
+                credentials: "include",
+                headers: {
+                "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                title: formData.title,
+                description: formData.description,
+                startingAt: formData.startingAt,
+                duration: formData.duration,
+                invitationsSendingAt: formData.invitationsSendingAt,
+                registrationsClosingAt: formData.registrationsClosingAt,
+                }),
+            });
+
+            if (!res.ok) {
+                throw new Error("Server error: " + res.statusText);
+            }
+        } catch (err: any) {
+            setError("Fehler beim Bearbeiten des Events: " + err.message);
+        }
+    }
 
     async function fetchEventsData(): Promise<Event[]> {
         try {
@@ -74,7 +118,7 @@ const EventList = () => {
     return (
         <div className="grid-list-container">
             {events.map((e) => (
-                <EventCard key={e.id} event={e} />
+                <EventCard onDelete={handleDeleteEvent} key={e.id} event={e} />
             ))}
         </div>
     );

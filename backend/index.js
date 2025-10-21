@@ -122,12 +122,11 @@ app.post("/api/dashboard/registerCandidates", async (req, res) => {
   const { firstName, lastName, email, status, interests, jobBrancheInterests } = req.body || {};
   console.log("Register Candidate request body:", req.body);
 
-  // validate required fields
+
   if (!firstName || !email) {
     return res.status(400).json({ success: false, message: "firstName and email are required" });
   }
 
-  // convert interests array to comma-separated text for job_interest column
   const jobInterest = Array.isArray(interests) ? interests.join(", ") : null;
 
   try {
@@ -151,57 +150,102 @@ app.post("/api/dashboard/registerCandidates", async (req, res) => {
 
 app.get("/api/dashboard/callEvents", async (req, res) => {
   try {
-    const result = await client.query(
-      "SELECT * FROM events;"
-    );
-    
-    // convert snake_case to camelCase
-    const events = result.rows.map(row => ({
-      id: row.id,
-      title: row.title,
-      description: row.description,
-      startingAt: row.starting_at,
-      duration: row.duration,
-      invitationsSendingAt: row.invitations_sending_at,
-      registrationsClosingAt: row.registrations_closing_at,
-      createdAt: row.created_at,
-    }));
-
+    const result = await client.query("SELECT * FROM events;");
     res.status(200).json({
       success: true,
-      events: events,
+      events: result.rows,
     });
   } catch (error) {
-    console.error("Call Event Error: ", error);
+    console.error("Call Events Error:", error);
     res.status(500).json({ success: false, message: error.message });
   }
 });
 
-
 app.post("/api/dashboard/registerEvents", async (req, res) => {
-  const { title, description, startingAt, duration, invitationsSendingAt, registrationsClosingAt } = req.body || {}
-  console.log("Register Event request body:", req.body)
+  const { title, description, startingAt, duration, invitationsSendingAt, registrationsClosingAt } = req.body || {};
+  console.log("Register Event request body:", req.body);
 
-  // validate required fields
   if (!title || !description || !startingAt) {
-    return res.status(400).json({ success: false, message: "title, description and startingAt are required" })
+    return res.status(400).json({ success: false, message: "title, description, and startingAt are required" });
+  }
+
+  let formattedDuration = null;
+  if (duration) {
+    if (typeof duration === "string" && duration.includes(":")) {
+      const parts = duration.split(":");
+      if (parts.length === 2) {
+        formattedDuration = `${parts[0]}:${parts[1]}:00`;
+      } else if (parts.length === 3) {
+        formattedDuration = duration;
+      }
+    }
   }
 
   try {
     const result = await client.query(
       `INSERT INTO events (title, description, starting_at, duration, invitations_sending_at, registrations_closing_at)
-       VALUES ($1, $2, $3, $4, $5, $6)
+       VALUES ($1, $2, $3, $4::interval, $5, $6)
        RETURNING id, title;`,
-      [title, description, startingAt, duration || null, invitationsSendingAt || null, registrationsClosingAt || null],
-    )
-    console.log("Event registered with ID:", result.rows[0].id)
-    res.status(200).json({ success: true, event: result.rows[0] })
+      [title, description, startingAt, formattedDuration, invitationsSendingAt || null, registrationsClosingAt || null]
+    );
+    console.log("Event registered with ID:", result.rows[0].id);
+    res.status(200).json({ success: true, event: result.rows[0] });
   } catch (error) {
-    console.error("Register Event Error: ", error)
-    res.status(500).json({ success: false, message: error.message })
+    console.error("Register Event Error:", error);
+    res.status(500).json({ success: false, message: error.message });
   }
-})
+});
 
+app.delete("/api/dashboard/deleteEvent/:eventId", async (req, res) => {
+  const { eventId } = req.params;
+  console.log("Delete Event request for ID:", eventId);
+
+  try {
+    const result = await client.query("DELETE FROM events WHERE id = $1 RETURNING id;", [eventId]);
+    if (result.rows.length === 0) {
+      return res.status(404).json({ success: false, message: "Event not found" });
+    }
+    res.status(200).json({ success: true, message: "Event deleted" });
+  } catch (error) {
+    console.error("Delete Event Error:", error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+app.put("/api/dashboard/editEvent/:eventId", async (req, res) => {
+  const { eventId } = req.params;
+  const { title, description, startingAt, duration, invitationsSendingAt, registrationsClosingAt } = req.body || {};
+  console.log("Edit Event request for ID:", eventId, req.body);
+
+  let formattedDuration = null;
+  if (duration) {
+    if (typeof duration === "string" && duration.includes(":")) {
+      const parts = duration.split(":");
+      if (parts.length === 2) {
+        formattedDuration = `${parts[0]}:${parts[1]}:00`;
+      } else if (parts.length === 3) {
+        formattedDuration = duration;
+      }
+    }
+  }
+
+  try {
+    const result = await client.query(
+      `UPDATE events 
+       SET title = $1, description = $2, starting_at = $3, duration = $4::interval, invitations_sending_at = $5, registrations_closing_at = $6
+       WHERE id = $7
+       RETURNING id, title;`,
+      [title, description, startingAt, formattedDuration, invitationsSendingAt || null, registrationsClosingAt || null, eventId]
+    );
+    if (result.rows.length === 0) {
+      return res.status(404).json({ success: false, message: "Event not found" });
+    }
+    res.status(200).json({ success: true, event: result.rows[0] });
+  } catch (error) {
+    console.error("Edit Event Error:", error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
 
 app.get("/api/dashboard", (req, res) => {
   res.json({ message: "Willkommen im Dashboard!" });
