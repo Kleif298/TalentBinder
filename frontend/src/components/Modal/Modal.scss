@@ -1,3 +1,5 @@
+@use "../../styles/_variables.scss" as vars;
+
 .modal-overlay {
     position: fixed;
     top: 0;
@@ -157,9 +159,18 @@
     background-color: #d1d5db;
 }
 
+.btn-danger {
+    background-color: #ef4444;
+    color: white;
+}
+
+.btn-danger:hover {
+    background-color: #dc2626;
+}
+
 .modal-trigger {
     padding: 10px 16px;
-    background-color: #E59C36;
+    background-color: vars.$secondary-color;
     color: white;
     border: none;
     border-radius: 6px;
@@ -170,5 +181,7 @@
 }
 
 .modal-trigger:hover {
-    background-color: #2563eb;
+    background-color: vars.$primary-color;
 }
+
+/* error/success messages are intentionally defined in global.scss to avoid duplication across components */

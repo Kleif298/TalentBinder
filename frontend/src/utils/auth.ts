@@ -1,52 +1,51 @@
-import type { JwtPayload } from "jwt-decode";
-import { jwtDecode } from "jwt-decode";
-import type { NavigateFunction } from "react-router-dom";
-
-interface MyTokenPayload extends JwtPayload {
+interface UserData {
   id: number;
   email: string;
   role: string;
   isAdmin: boolean;
 }
 
-export function getToken(): string | null {
-  return localStorage.getItem("token");
-}
-
-export function getDecodedToken(): MyTokenPayload | null {
-  const token = getToken();
-  if (!token) return null;
+export function getUserData(): UserData | null {
+  const userStr = sessionStorage.getItem('user');
+  if (!userStr) return null;
   try {
-    return jwtDecode<MyTokenPayload>(token);
+    return JSON.parse(userStr);
   } catch (error) {
-    console.error("Ungültiger Token:", error);
+    console.error("Ungültige User-Daten:", error);
     return null;
   }
 }
 
-export function handleAuthResponse(data: any, navigate: NavigateFunction) {
-  if (data.token) {
-    localStorage.setItem("token", data.token);
-  }
-  const isAdmin = getAdminStatus();
-  if (isAdmin) {
-    navigate("/dashboard/admin");
-  } else {
-    navigate("/dashboard");
+export function handleAuthResponse(data: any) {
+  if (data.success && data.account) {
+    // Bereite User-Daten mit Admin-Status vor
+    const userData: UserData = {
+      id: data.account.id,
+      email: data.account.email,
+      role: data.account.role,
+      isAdmin: data.account.role === 'berufsbilder' // In diesem Fall ist jeder Berufsbilder auch Admin
+    };
+    // Speichere User-Daten für Frontend-Status
+    sessionStorage.setItem('user', JSON.stringify(userData));
   }
 }
 
 export function getAdminStatus(): boolean {
-  const payload = getDecodedToken();
-  return payload?.isAdmin === true;
+  const userData = getUserData();
+  return userData?.isAdmin === true;
 }
 
-export function getUserId(): number | null {
-  const payload = getDecodedToken();
-  return payload?.id || null;
+export function getAccountId(): number | null {
+  const userData = getUserData();
+  return userData?.id || null;
 }
 
-export function getUserEmail(): string | null {
-  const payload = getDecodedToken();
-  return payload?.email || null;
+export function getAccountEmail(): string | null {
+  const userData = getUserData();
+  return userData?.email || null;
+}
+
+export function getAccountRole(): string | null {
+  const userData = getUserData();
+  return userData?.role || null;
 }

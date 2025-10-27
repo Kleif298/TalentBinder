@@ -1,48 +1,23 @@
 import { useState, useEffect } from "react";
 import CandidateCard from "../CandidateCard/CandidateCard";
 import "./GridList.scss";
+import { getAdminStatus } from "../../utils/auth";
+import { candidatesAPI } from "../../api/candidatesAPI";
+import type { Candidate, GridListProps } from "../../types/Candidate";
 
-
-interface Candidate {
-  id: number;
-  first_name: string;
-  last_name: string;
-  email: string;
-  status: string;
-  job_branche_interests: string;
-}
-
-const GridList = () => {
+const GridList = ({ refreshKey, filterParams, onEditCandidate, onViewCandidate }: GridListProps) => {
 
   const [candidates, setCandidates] = useState<Candidate[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const isAdmin = getAdminStatus(); 
 
   async function fetchCandidatesData(): Promise<Candidate[]> {
-    try {
-      const res = await fetch("http://localhost:4000/api/dashboard/callCandidates", {
-        credentials: "include"
-      });
- 
-      if (!res.ok) {
-        throw new Error("Server error: " + res.statusText);
-      }
-
-      const data = await res.json();
-
-      if (data.success && Array.isArray(data.candidates)) {
-        return data.candidates as Candidate[];
-      } 
-      else {
-        console.log("Either calling candidates failed or no candidates are registered in db: " + data.message);
-        return [];
-      }
-    } catch (err: any) {
-      console.log("Calling candidates failed: " + err.message);
-      throw new Error(err.message);
-    }
+    const { search, status, sortBy } = filterParams;
+    return await candidatesAPI.getAll(search || undefined, status || undefined, sortBy || undefined);
   }
 
+  // Lade Kandidaten bei Erst-Render oder wenn sich refreshKey/filterParams ändert
   useEffect (() => {
     async function loadCandidates() {
       setIsLoading(true);
@@ -57,8 +32,8 @@ const GridList = () => {
       }
     }
       loadCandidates();
-  }, []);
-  
+  }, [refreshKey, filterParams]);
+
   if (isLoading) {
     return <div className="grid-list-container">Lade Kandidaten...</div>;
   }
@@ -68,15 +43,22 @@ const GridList = () => {
   }
 
   if (candidates.length === 0) {
-    return <div className="grid-list-container">Keine Kandidaten gefunden.</div>;
+    return <div className="grid-list-container no-candidates">Keine Kandidaten gefunden.</div>;
   }
-
+  
   return (
     <div className="grid-list-container">
-       {candidates.map((c) => (
-        <CandidateCard key={c.id} candidate={c} />
+      {candidates.map((candidate) => (
+        <CandidateCard 
+          key={candidate.id} 
+          candidate={candidate} 
+          isAdmin={isAdmin}
+          onEdit={onEditCandidate}
+          onView={onViewCandidate}
+        />
       ))}
     </div>
   );
 };
+
 export default GridList;

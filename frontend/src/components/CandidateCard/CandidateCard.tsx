@@ -1,24 +1,42 @@
 import "./CandidateCard.scss";
 import star from "~/assets/star.svg";
+import { useState, useEffect } from "react";
+import type { CandidateCardProps } from "../../types/Candidate";
 
-interface Candidate {
-  id: number;
-  first_name: string;
-  last_name: string;
-  email: string;
-  status: string;
-  job_branche_interests: string;
-}
+const CandidateCard = ({ candidate, isAdmin, onEdit, onView }: CandidateCardProps) => {
+  const isFavorite = candidate.status === 'Favorit';
+  const [apprenticeshipName, setApprenticeshipName] = useState<string>("Laden...");
 
-interface CandidateCardProps {
-  candidate: Candidate;
-}
-
-const CandidateCard = ({ candidate }: CandidateCardProps) => {
+  // Lade Lehrstelle Name beim Mount
+  useEffect(() => {
+    if (candidate.apprenticeship) {
+      setApprenticeshipName(candidate.apprenticeship);
+    } else {
+      setApprenticeshipName("Nicht zugeordnet");
+    }
+  }, [candidate.apprenticeship]);
+  
   return (
     <div className="talent-card">
-      {candidate.first_name} {candidate.last_name}
-      {candidate.status == "favorite" ? <img src={star} alt="talent star" /> : null}
+      <div className="card-header">
+        <div className="name">
+          {candidate.first_name} {candidate.last_name}
+        </div>
+        {isFavorite && <img src={star} alt="talent star" />}
+      </div>
+      
+      <div className="card-body">
+        <p><strong>Email:</strong> {candidate.email}</p>
+        <p><strong>Status:</strong> {candidate.status}</p>
+        <p><strong>Lehrstelle:</strong> {apprenticeshipName}</p>
+      </div>
+
+      <div className="card-actions">
+        <button className="btn-view" onClick={() => onView(candidate)}>Ansehen</button>
+        {isAdmin && (
+          <button className="btn-edit" onClick={() => onEdit(candidate)}>Bearbeiten</button>
+        )}
+      </div>
     </div>
   );
 };

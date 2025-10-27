@@ -1,14 +1,17 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { handleAuthResponse } from "../../utils/auth.ts";
+import { handleAuthResponse } from "~/utils/auth";
+import MessageBanner from "~/components/MessageBanner/MessageBanner";
+import type { Message } from "~/components/MessageBanner/MessageBanner";
 
 import "./Register.scss";
 
 const Register = () => {
-  const [username, setUsername] = useState("");
+  const [first_name, setFirstName] = useState("");
+  const [last_name, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [message, setMessage] = useState("");
+  const [message, setMessage] = useState<Message | null>(null);
 
   const navigate = useNavigate();
   const handleRegister = async (e: React.FormEvent) => {
@@ -18,7 +21,7 @@ const Register = () => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify({ email, password, username }),
+        body: JSON.stringify({ email, password, first_name, last_name }),
       });
       if (!res.ok) {
         throw new Error("Server error: " + res.statusText);
@@ -26,18 +29,20 @@ const Register = () => {
 
       const data = await res.json();
       if (data.success) {
-        setMessage("Registration successful! Automated login...");
-        handleAuthResponse(data, navigate);
+        handleAuthResponse(data);
+        setMessage({ type: "success", text: "Registrierung erfolgreich! Automatische Anmeldung..." });
+        setTimeout(() => navigate("/events"), 1500);
       } else {
-        setMessage("Login failed: " + data.message);
+        setMessage({ type: "error", text: "Registrierung fehlgeschlagen: " + data.message, duration: 0 });
       }
     } catch (err: any) {
-      setMessage("Login failed: " + err.message);
+      setMessage({ type: "error", text: "Registrierung fehlgeschlagen: " + err.message, duration: 0 });
     }
   };
 
   return (
     <div className="register-container">
+      <MessageBanner message={message} onClose={() => setMessage(null)} />
       <form className="register-form" onSubmit={handleRegister}>
         <h2>Register</h2>
 
@@ -45,11 +50,21 @@ const Register = () => {
           <label htmlFor="username">Username *optional</label>
           <input
             type="username"
-            id="username"
-            name="username"
-            onChange={(e) => setUsername(e.target.value)}
-            placeholder="Enter your username"
+            id="first_name"
+            name="first_name"
+            onChange={(e) => setFirstName(e.target.value)}
+            placeholder="Enter your first name"
             required
+          />
+        </div>
+        <div className="input-group">
+          <label htmlFor="last_name">Last Name *optional</label>
+          <input
+            type="text"
+            id="last_name"
+            name="last_name"
+            onChange={(e) => setLastName(e.target.value)}
+            placeholder="Enter your last name"
           />
         </div>
         <div className="input-group">
@@ -84,7 +99,6 @@ const Register = () => {
           </Link>
         </div>
       </form>
-      {message && <div className="register-message">{message}</div>}
     </div>
   );
 };

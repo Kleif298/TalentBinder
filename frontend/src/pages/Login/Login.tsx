@@ -1,12 +1,14 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { handleAuthResponse } from "../../utils/auth";
+import { handleAuthResponse, getUserData } from "~/utils/auth";
+import MessageBanner from "~/components/MessageBanner/MessageBanner";
+import type { Message } from "~/components/MessageBanner/MessageBanner";
 import "./Login.scss";
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [message, setMessage] = useState("");
+  const [message, setMessage] = useState<Message | null>(null);
 
   const navigate = useNavigate();
   const handleLogin = async (e: React.FormEvent) => {
@@ -25,21 +27,23 @@ const Login = () => {
 
       const data = await res.json();
       if (data.success) {
-        setMessage(
-          "Login successful! " + data.user.email
-        );
-
-        handleAuthResponse(data, navigate);
+        handleAuthResponse(data);
+        // Debug-Information
+        console.log("Login erfolgreich, User-Daten:", getUserData());
+        navigate("/events", { replace: true });
       } else {
-        setMessage("Login failed: " + data.message);
+        setMessage({ type: "error", text: "Login fehlgeschlagen: " + data.message, duration: 0 });
       }
     } catch (err: any) {
-      setMessage("Login failed: " + err.message);
+      setMessage({ type: "error", text: "Login fehlgeschlagen: " + err.message, duration: 0 });
     }
   };
 
   return (
     <div className="login-container">
+      <div className="login-message">
+        {message && <MessageBanner message={message} onClose={() => setMessage(null)} />}
+      </div>
       <form className="login-form" onSubmit={handleLogin}>
         <h2>Login</h2>
         <div className="input-group">
@@ -75,7 +79,6 @@ const Login = () => {
             Sign up
           </Link>
         </div>
-        {message && <div>{message}</div>}
       </form>
     </div>
   );

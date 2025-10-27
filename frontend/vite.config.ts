@@ -12,7 +12,7 @@ export default defineConfig({
     preprocessorOptions: {
       scss: {
         // Globale SCSS-Datei in allen SCSS-Dateien einbinden
-        additionalData: `@import "~/styles/global.scss";`,
+        additionalData: `@use "~/styles/global.scss";`,
       },
     },
   },

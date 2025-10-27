@@ -1,13 +1,13 @@
 // utils/ProtectedRoute.tsx
 import { Navigate } from "react-router-dom";
-import { getToken } from "../utils/auth.ts";
+import { getUserData } from "../utils/auth.ts";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
 }
 
 const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
-  if (!getToken()) {
+  if (!getUserData()) {
     return <Navigate to="/login" replace />;
   }
   return children;
