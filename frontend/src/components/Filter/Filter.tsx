@@ -1,5 +1,3 @@
-// Filter.tsx
-
 import "./Filter.scss";
 import { useState, useEffect } from "react";
 
